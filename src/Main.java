@@ -14,14 +14,13 @@ public class Main {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		String path="/media/xiake/000B6A010000E4E0/lineageOS";
-		//String path="/home/xiake/文档";
 		statisticDir(new File(path));
 		List<Map.Entry<String, Integer>> list=sortData();
 		System.out.println("扫描结果：\n");
 		//绘制markdown表格
 		System.out.println("| 排名 | 单词 | 出现频率 |");
 		System.out.println("| ------------- |:-------------:| --------:|");
-		for(int i=0;i<100;i++) {
+		for(int i=0;i<200;i++) {
 			Map.Entry<String, Integer> entry=list.get(i);
 			System.out.println("| "+(i+1)+" | "+entry.getKey()+" | "+entry.getValue()+" |");
 		}
@@ -45,12 +44,12 @@ public class Main {
             if (f.isFile())
             {
             	String full=f.getAbsolutePath();
-            	if(full.endsWith(".c")||full.endsWith(".cpp")||full.endsWith(".java")) {
+            	if(full.endsWith(".c")||full.endsWith(".cpp")||full.endsWith(".java")||full.endsWith(".h")) {
             		statisticFile(full);
             	}
             }
             else{
-            	System.out.println("扫描："+f.getAbsolutePath());
+            	System.out.println("扫描："+f.getAbsolutePath());//想快点可以把这行注释掉
             	statisticDir(f);
             }
 
@@ -152,7 +151,5 @@ public class Main {
 				scan=false;
 			}
 		}
-
-		
 	}
 }
