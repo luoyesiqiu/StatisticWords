@@ -1,3 +1,4 @@
+package main;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -11,20 +12,38 @@ import java.util.TreeMap;
 
 public class Main {
 	private static Map<String, Integer> table=new TreeMap<String, Integer>();
+	//扫描何种类型的文件
+	private static String filter="(.*\\.c|.*\\.cpp|.*\\.java|.*\\.h)$";
+	//大小写是否敏感
+	private static boolean sensitive=true;
+	//打印前几名，0为全打印
+	private static final int RANK=100;
+	//扫描时的状态
+	private enum State{
+		UpperCase,
+		LowerCase,
+		Other
+	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		String path="/media/xiake/000B6A010000E4E0/lineageOS";
-		statisticDir(new File(path));
+		String path="K:/code/c";
+		File file=new File(path);
+		if(!file.exists()){
+			
+			System.out.printf("目录'%s'不存在!",path);
+			return;
+		}
+		statisticDir(file);
 		List<Map.Entry<String, Integer>> list=sortData();
 		System.out.println("扫描结果：\n");
 		//绘制markdown表格
 		System.out.println("| 排名 | 单词 | 出现频率 |");
 		System.out.println("| ------------- |:-------------:| --------:|");
-		for(int i=0;i<200;i++) {
+		int rank=(RANK==0?list.size():RANK);
+		for(int i=0;i<rank;i++) {
 			Map.Entry<String, Integer> entry=list.get(i);
 			System.out.println("| "+(i+1)+" | "+entry.getKey()+" | "+entry.getValue()+" |");
 		}
-		
 	}
 	
 	/**
@@ -44,7 +63,7 @@ public class Main {
             if (f.isFile())
             {
             	String full=f.getAbsolutePath();
-            	if(full.endsWith(".c")||full.endsWith(".cpp")||full.endsWith(".java")||full.endsWith(".h")) {
+            	if(full.matches(filter)) {
             		statisticFile(full);
             	}
             }
@@ -112,6 +131,7 @@ public class Main {
         
 		return entryArrayList;
 	}
+	
 	/**
 	 * 从句子统计单词
 	 * @param sentence
@@ -124,32 +144,106 @@ public class Main {
 		boolean scan=false;
 		
 		int len=sentence.length();
+		State state=State.Other;
 		for(int i=0;i<len;i++) {
 			char ch=sentence.charAt(i);
 			
-			if(!scan&&Character.isLetter(ch)) {
-				start=i;
-				scan=true;
+			//小写字母
+			if(Character.isLowerCase(ch)) {
+				if(!scan){
+					start=i;
+					scan=true;
+				}
+				//根据前一个状态判断
+				if(state==State.Other){
+					state=State.LowerCase;
+					scan=true;
+				}
+				else if(state==State.LowerCase||state==State.UpperCase){
+					if(i==len-1){
+						end=len;
+						if(end-start==1) {
+							//不要一个字母的单词
+							scan=false;
+							continue;
+						}
+						word=sentence.substring(start, end);
+						if(!sensitive){
+							word=word.toLowerCase();
+						}
+						if(table.containsKey(word)) {
+							int newVal=table.get(word)+1;
+							table.put(word, newVal);
+						}
+						else {
+							table.put(word, 1);
+						}
+					}
+				}
 				
 			}
-			 if((scan&&!Character.isLetter(ch))||(scan&&i==len-1)) {
-				end=(i==len-1)?len:i;
-				if(end-start==1) {
-					//不要一个字母的单词
+			//大写字母
+			else if(Character.isUpperCase(ch)) {
+				if(!scan){
+					start=i;
+					scan=true;
+					state=State.UpperCase;
+					continue;
+				}
+				if(state==State.LowerCase||state==State.UpperCase||state==State.Other){
+					end=(i==len-1)?len:i;
+					if(end-start==1) {
+						//不要一个字母的单词
+						scan=false;
+						continue;
+					}
+					word=sentence.substring(start, end);
+					if(!sensitive){
+						word=word.toLowerCase();
+					}
+					if(table.containsKey(word)) {
+						int newVal=table.get(word)+1;
+						table.put(word, newVal);
+					}
+					else {
+						table.put(word, 1);
+					}
+					state=State.UpperCase;
+					scan=true;
+					start=i;
+				}
+				
+				
+			}
+			//其他
+			else{
+				if(!scan){
 					scan=false;
 					continue;
 				}
-				word=sentence.substring(start, end);
-				word=word.toLowerCase();
-				if(table.containsKey(word)) {
-					int newVal=table.get(word)+1;
-					table.put(word, newVal);
+				if(state!=State.Other){
+					end=(i==len-1)?len:i;
+					if(end-start==1) {
+						//不要一个字母的单词
+						scan=false;
+						continue;
+					}
+					word=sentence.substring(start, end);
+					if(!sensitive){
+						word=word.toLowerCase();
+					}
+					if(table.containsKey(word)) {
+						int newVal=table.get(word)+1;
+						table.put(word, newVal);
+					}
+					else {
+						table.put(word, 1);
+					}
+					state=State.Other;
+					scan=false;
 				}
-				else {
-					table.put(word, 1);
-				}
-				scan=false;
 			}
+			
 		}
 	}
 }
