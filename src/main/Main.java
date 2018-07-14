@@ -12,8 +12,10 @@ import java.util.TreeMap;
 
 public class Main {
 	private static Map<String, Integer> table=new TreeMap<String, Integer>();
+	//扫描的目录
+	private static final String SEARCH_PATH="K:/code/c";
 	//扫描何种类型的文件
-	private static String filter="(.*\\.c|.*\\.cpp|.*\\.java|.*\\.h)$";
+	private static String filter="(.*\\.c|.*\\.h)$";
 	//大小写是否敏感
 	private static boolean sensitive=true;
 	//打印前几名，0为全打印
@@ -26,11 +28,11 @@ public class Main {
 	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		String path="K:/code/c";
-		File file=new File(path);
+
+		File file=new File(SEARCH_PATH);
 		if(!file.exists()){
 			
-			System.out.printf("目录'%s'不存在!",path);
+			System.out.printf("目录'%s'不存在!",SEARCH_PATH);
 			return;
 		}
 		statisticDir(file);
@@ -116,7 +118,7 @@ public class Main {
 		return stringBuilder;
 	}
 	/**
-	 * 从大到小排列
+	 * 从大到小排序
 	 * @return
 	 */
 	private static List<Map.Entry<String, Integer>> sortData() {
